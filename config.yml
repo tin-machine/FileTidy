@@ -1,0 +1,43 @@
+sourcepath:
+  - ~/Downloads/
+  - ~/Desktop/
+
+destinationpath: ~/workspace/Archive
+
+filenameregex:
+  スクリーンショット\ (\d{4}-\d{2}-\d{2}) .*png: ScreenShot
+
+extentiontarget:
+  txt: TXT
+  jpeg: Image
+  JPEG: Image
+  pdf: PDF
+  PDF: PDF
+  pem: Pem
+  dmg: Installer
+  exe: Installer
+  json: JSON
+  jar: Jar
+  zip: Archive
+  tar.gz: Archive
+  gz: Archive
+  jpg: Image
+  JPG: Image
+  jpeg: Image
+  png: Image
+  doc: Office
+  docx: Office
+  xlsx: Office
+  xlsm: Office
+  xls: Office
+  csv: CSV
+  key: Presentation
+  pptx: Presentation
+  ppt: Presentation
+  mp4: Movie
+  MP4: Movie
+  MOV: Movie
+  mov: Movie
+  txt: Text
+  md: Text
+  bat: WindowsBatch
