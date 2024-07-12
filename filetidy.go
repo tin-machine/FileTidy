@@ -130,6 +130,8 @@ func fileMove(files []string, config Config) {
 	for _, file := range files {
 		fmt.Println("fileMove2 file は " + file)
 
+		moved := false // ファイルが移動されたかを追跡するフラグ
+
 		// config.Filenameregex 内の各正規表現とファイル名を照合する
 		for key, value := range config.Filenameregex {
 			r := regexp.MustCompile(key)
@@ -142,9 +144,14 @@ func fileMove(files []string, config Config) {
 				createDir(newPath)
 				// ファイルを新しい場所に移動
 				mv(file, newPath)
-				// 次のファイルに移動
-				continue
+				moved = true // ファイルが移動されたことを記録
+				break        // 次のファイルに移動
 			}
+		}
+
+		// ファイルが既に移動されている場合は次のファイルへ
+		if moved {
+			continue
 		}
 
 		// ファイルの拡張子を確認し、移行先ディレクトリを設定
