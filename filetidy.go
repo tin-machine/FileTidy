@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -16,11 +17,27 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
+var debug bool
+
 type Config struct {
 	Sourcepath      []string          `validate:"required"`
 	Destinationpath string            `validate:"required"`
 	Extentiontarget map[string]string `validate:"required"`
 	Filenameregex   map[string]string `validate:"required"`
+}
+
+// debugPrintはデバッグモードのときのみ出力する関数
+func debugPrint(format string, v ...interface{}) {
+	if debug {
+		fmt.Printf(format, v...)
+	}
+}
+
+// debugPrettyPrintはデバッグモードのときのみ構造体を整形して出力する関数
+func debugPrettyPrint(v interface{}) {
+	if debug {
+		pp.Print(v)
+	}
 }
 
 // expandPathはチルダをホームディレクトリに展開し、相対パスを絶対パスに変換する
@@ -87,7 +104,7 @@ func Utf82Sjis(str string) (string, error) {
 func createDir(newPath string) {
 	targetDir := filepath.Dir(newPath)
 	if f, err := os.Stat(targetDir); os.IsNotExist(err) || !f.IsDir() {
-		fmt.Println("移動先のディレクトリはありません。 " + targetDir + " 作ります。")
+		debugPrint("移動先のディレクトリはありません。 %s 作ります。\n", targetDir)
 		if err := os.MkdirAll(targetDir, 0777); err != nil {
 			fmt.Println(err)
 		}
@@ -95,7 +112,7 @@ func createDir(newPath string) {
 }
 
 func mv(oldPath string, newPath string) {
-	fmt.Println("mv です " + oldPath + " を " + newPath + " に移動します")
+	debugPrint("mv です %s を %s に移動します\n", oldPath, newPath)
 	r, err := os.Open(oldPath)
 	if err != nil {
 		log.Fatal(err)
@@ -128,7 +145,7 @@ func fileMove(files []string, config Config) {
 
 	// files の各ファイルについて処理を行う
 	for _, file := range files {
-		fmt.Println("fileMove2 file は " + file)
+		debugPrint("fileMove2 file は %s\n", file)
 
 		moved := false // ファイルが移動されたかを追跡するフラグ
 
@@ -137,9 +154,9 @@ func fileMove(files []string, config Config) {
 			r := regexp.MustCompile(key)
 			if s := r.FindStringSubmatch(file); len(s) > 0 {
 				// 正規表現にマッチした場合の処理
-				fmt.Println("正規表現にマッチする " + key + " " + value + " マッチした文字列 " + s[1])
+				debugPrint("正規表現にマッチする %s %s マッチした文字列 %s\n", key, value, s[1])
 				newPath := filepath.Join(destinationPath, value, s[1], filepath.Base(file))
-				fmt.Println("移行先は " + newPath)
+				debugPrint("移行先は %s\n", newPath)
 				// 必要なディレクトリを作成
 				createDir(newPath)
 				// ファイルを新しい場所に移動
@@ -166,6 +183,10 @@ func fileMove(files []string, config Config) {
 }
 
 func main() {
+	// デバッグフラグを追加
+	flag.BoolVar(&debug, "d", false, "デバッグモードを有効にする")
+	flag.Parse()
+
 	// "config.yml"というファイルを読み込む
 	config, err := os.ReadFile("config.yml")
 	// 読み込み中にエラーが発生した場合、プログラムを停止しエラーを表示
@@ -188,8 +209,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("validation error: %v", err)
 	}
-	// Config構造体の内容を整形して表示する
-	pp.Print(c)
+	// Config構造体の内容を整形して表示する（デバッグ時のみ）
+	debugPrettyPrint(c)
 	// ソースパスのファイルリストを取得し、ファイル移動処理を実行する
 	fileMove(listFiles(c.Sourcepath), c)
 }
